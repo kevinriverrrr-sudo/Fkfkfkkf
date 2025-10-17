@@ -1,1 +1,1 @@
-requests>=2.31.0
+aiogram>=3.6.0,<4
