@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}EpicDub Studio{% endblock %}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <style>
+    header.container { margin-top: 1rem; }
+    .video-embed iframe { width: 100%; min-height: 420px; }
+  </style>
+</head>
+<body>
+  <header class="container">
+    <nav>
+      <ul>
+        <li><strong><a href="/">EpicDub Studio</a></strong></li>
+      </ul>
+      <ul>
+        {% if user.is_authenticated %}
+        <li>Привет, {{ user.username }}!</li>
+        <li><a href="{% url 'upload' %}">Загрузить видео</a></li>
+        <li><a href="{% url 'logout' %}">Выход</a></li>
+        {% else %}
+        <li><a href="{% url 'login' %}">Вход</a></li>
+        <li><a href="{% url 'register' %}">Регистрация</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </header>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

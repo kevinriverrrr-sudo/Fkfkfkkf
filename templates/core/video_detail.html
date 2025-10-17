@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}{{ video.title }} — EpicDub Studio{% endblock %}
+{% block content %}
+<article>
+  <header><h2>{{ video.title }}</h2></header>
+  <p>{{ video.description|linebreaks }}</p>
+  <section class="video-embed">
+    {% if video.vk_embed_url %}
+      <iframe src="{{ video.vk_embed_url }}" frameborder="0" allowfullscreen></iframe>
+    {% elif video.file %}
+      <video controls width="100%" src="{{ video.file.url }}"></video>
+    {% else %}
+      <p>Нет источника видео.</p>
+    {% endif %}
+  </section>
+  <footer>
+    <form method="post" action="{% url 'react' video.pk %}">
+      {% csrf_token %}
+      <button name="value" value="1">👍 Нравится ({{ like_count }})</button>
+      <button name="value" value="-1">👎 Не нравится ({{ dislike_count }})</button>
+    </form>
+  </footer>
+</article>
+<hr />
+<section>
+  <h3>Комментарии</h3>
+  {% if user.is_authenticated %}
+  <form method="post" action="{% url 'add_comment' video.pk %}">
+    {% csrf_token %}
+    <textarea name="text" rows="3" placeholder="Ваш комментарий..."></textarea>
+    <button type="submit">Отправить</button>
+  </form>
+  {% else %}
+  <p><a href="{% url 'login' %}">Войдите</a>, чтобы оставить комментарий.</p>
+  {% endif %}
+
+  <ul>
+    {% for c in comments %}
+      <li>
+        <p><strong>{{ c.author.username }}</strong> — {{ c.created_at|date:'d.m.Y H:i' }}</p>
+        <p>{{ c.text|linebreaks }}</p>
+        {% if user.is_authenticated %}
+          <details>
+            <summary>Ответить</summary>
+            <form method="post" action="{% url 'add_comment' video.pk %}">
+              {% csrf_token %}
+              <input type="hidden" name="parent" value="{{ c.pk }}" />
+              <textarea name="text" rows="2" placeholder="Ваш ответ..."></textarea>
+              <button type="submit">Ответить</button>
+            </form>
+          </details>
+        {% endif %}
+
+        {% if c.replies.all %}
+          <ul>
+            {% for r in c.replies.all %}
+              <li>
+                <p><strong>{{ r.author.username }}</strong> — {{ r.created_at|date:'d.m.Y H:i' }}</p>
+                <p>{{ r.text|linebreaks }}</p>
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}

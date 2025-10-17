@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Главная — EpicDub Studio{% endblock %}
+{% block content %}
+<h2>Последние видео</h2>
+<div class="grid">
+  {% for v in videos %}
+  <article>
+    <header><h3><a href="{% url 'video_detail' v.pk %}">{{ v.title }}</a></h3></header>
+    <p>{{ v.description|truncatechars:140 }}</p>
+    <footer>
+      <small>Загружено: {{ v.created_by.username }} • {{ v.created_at|date:'d.m.Y H:i' }}</small>
+    </footer>
+  </article>
+  {% empty %}
+  <p>Пока нет видео.</p>
+  {% endfor %}
+</div>
+{% endblock %}
