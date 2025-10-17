@@ -348,13 +348,18 @@ async def deal_auto_leave_job(context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 def _parse_description_from_message_text(text: str) -> Optional[str]:
-    # Expect quoted string: /start_deal "..."
-    m = re.search(r"/start_deal\s+\"([\s\S]+?)\"", text)
-    if m:
-        return m.group(1).strip()
-    # Or without quotes: everything after command
-    m2 = re.search(r"/start_deal\s+(.+)$", text)
-    return m2.group(1).strip() if m2 else None
+    # Support both /new_deal and /start_deal, with optional @botname, quoted or unquoted
+    commands = ["new_deal", "start_deal"]
+    for cmd in commands:
+        # Quoted first
+        m = re.search(rf"/{cmd}(?:@[A-Za-z0-9_]+)?\\s+\"([\\s\\S]+?)\"", text)
+        if m:
+            return m.group(1).strip()
+        # Unquoted fallback
+        m2 = re.search(rf"/{cmd}(?:@[A-Za-z0-9_]+)?\\s+(.+)$", text)
+        if m2:
+            return m2.group(1).strip()
+    return None
 
 
 async def cmd_start_deal(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
