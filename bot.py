@@ -58,6 +58,7 @@ def _save_json(path: str, data: Any) -> None:
 
 STATE: Dict[str, Any] = _load_json(DATA_FILE, {"active": {}})
 COMPLETED: List[Dict[str, Any]] = _load_json(COMPLETED_FILE, [])
+PENDING_DEALS: Dict[str, Any] = {}
 
 
 def save_state() -> None:
@@ -158,38 +159,192 @@ async def on_bot_added(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     new = cmu.new_chat_member.status if cmu.new_chat_member else None
 
     if new in ("member", "administrator") and old in ("left", "kicked"):
+        adder_id = cmu.from_user.id if cmu.from_user else None
+        initiator_pending = PENDING_DEALS.get(str(adder_id)) if adder_id else None
+
         deal = ensure_deal(chat)
         add_event(deal, "bot_added")
 
-        # Try set initial title/description (may require admin rights)
-        tentative_title = f"Сделка №{deal['dealId']} — без названия"
-        tentative_desc = "Обмен: не задан. Сделку контролирует бот-гарант. Команда: /start_deal \"описание\" (ответом на сообщение второй стороны)."
-        set_chat_meta_safe(context, chat.id, tentative_title, tentative_desc)
+        if initiator_pending:
+            # Initialize deal from pending
+            description = initiator_pending.get("description")
+            initiator_id = initiator_pending.get("initiatorId")
+            deal["name"] = description
+            deal["description"] = description
+            deal["initiatorId"] = initiator_id
+            deal["participants"] = [initiator_id]
+            deal["confirmations"] = {str(initiator_id): False}
+            deal["state"] = "active"
+            deal["inviteDeadlineAt"] = (datetime.utcnow()).isoformat()
+            add_event(deal, "deal_started_from_dm", initiator_id)
+            save_state()
 
-        kb = InlineKeyboardMarkup([
-            [InlineKeyboardButton(text="Начать сделку", callback_data="noop")],
-        ])
-        await context.bot.send_message(
-            chat_id=chat.id,
-            text=(
-                "🔒 Бот-гарант подключён.\n\n"
-                "Чтобы зарегистрировать сделку, отправьте команду \n"
-                "<b>/start_deal \"описание обмена\"</b> ответом на сообщение второй стороны.\n\n"
-                "После регистрации стороны могут отправлять доказательства (фото/файлы).\n"
-                "Подтверждение: <b>/confirm</b>. Проверка статуса: <b>/check</b>."
-            ),
-            parse_mode=ParseMode.HTML,
-            reply_markup=kb,
-        )
+            # Set chat title/description accordingly
+            new_title = f"Сделка №{deal['dealId']} — {description[:48]}"
+            new_desc = f"Обмен: {description}. Сделку контролирует бот‑гарант."
+            set_chat_meta_safe(context, chat.id, new_title, new_desc)
+
+            # Schedule 2-minute participant check
+            job_name = f"deal-timeout-{chat.id}"
+            def _cancel_existing_jobs():
+                for j in context.job_queue.get_jobs_by_name(job_name):
+                    j.schedule_removal()
+            _cancel_existing_jobs()
+            context.job_queue.run_once(deal_timeout_job, when=120, data={"chat_id": chat.id}, name=job_name)
+
+            participants_fmt = format_participants(context, deal["participants"])  # clickable mentions
+            await context.bot.send_message(
+                chat_id=chat.id,
+                text=(
+                    f"🔒 Создан временный чат сделки №{deal['dealId']}. Участники: {participants_fmt}.\n\n"
+                    "Добавьте собеседника в этот чат в течение 2 минут.\n"
+                    "Если второй участник не будет добавлен, бот покинет чат."
+                ),
+                parse_mode=ParseMode.HTML,
+            )
+
+            # Clear pending
+            PENDING_DEALS.pop(str(adder_id), None)
+        else:
+            # Generic guidance if not created from DM
+            tentative_title = f"Сделка №{deal['dealId']} — без названия"
+            tentative_desc = "Обмен: не задан. Сделку контролирует бот-гарант. Команда: /start_deal \"описание\" (ответом на сообщение второй стороны)."
+            set_chat_meta_safe(context, chat.id, tentative_title, tentative_desc)
+
+            kb = InlineKeyboardMarkup([
+                [InlineKeyboardButton(text="Начать сделку", callback_data="noop")],
+            ])
+            await context.bot.send_message(
+                chat_id=chat.id,
+                text=(
+                    "🔒 Бот-гарант подключён.\n\n"
+                    "Чтобы зарегистрировать сделку, отправьте команду \n"
+                    "<b>/start_deal \"описание обмена\"</b> ответом на сообщение второй стороны.\n\n"
+                    "После регистрации стороны могут отправлять доказательства (фото/файлы).\n"
+                    "Подтверждение: <b>/confirm</b>. Проверка статуса: <b>/check</b>."
+                ),
+                parse_mode=ParseMode.HTML,
+                reply_markup=kb,
+            )
+
+async def deal_timeout_job(context: ContextTypes.DEFAULT_TYPE) -> None:
+    data = context.job.data or {}
+    chat_id = data.get("chat_id")
+    if not chat_id:
+        return
+    deal = get_deal(chat_id)
+    if not deal or deal.get("state") != "active":
+        return
+    # If less than 2 participants (excluding admin), leave the chat
+    participant_ids = [uid for uid in deal.get("participants", []) if uid != ADMIN_USER_ID]
+    if len(participant_ids) < 2:
+        # Announce and schedule leave in 20 seconds
+        try:
+            await context.bot.send_message(chat_id, "⏳ Второй участник не добавлен. Покину чат через 20 секунд.")
+        except Exception:
+            pass
+
+        leave_job_name = f"deal-auto-leave-{chat_id}"
+        for j in context.job_queue.get_jobs_by_name(leave_job_name):
+            j.schedule_removal()
+        context.job_queue.run_once(deal_auto_leave_job, when=20, data={"chat_id": chat_id}, name=leave_job_name)
 
 
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not update.effective_chat or not is_group(update.effective_chat):
-        await update.effective_message.reply_text("Этот бот работает только в групповых чатах.")
+        await update.effective_message.reply_text(
+            "Привет! Для начала сделки в ЛС:",
+        )
+        await update.effective_message.reply_text(
+            "Используйте команду /new_deal \"описание\" — я помогу создать временный чат.")
         return
     await update.effective_message.reply_text(
-        "Привет! Я бот‑гарант. В группе используйте /start_deal в ответ на собеседника."
+        "Привет! Я бот‑гарант. В группе используйте /start_deal в ответ на собеседника. Команды: /help"
     )
+
+
+async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user = update.effective_user
+    is_admin = user and user.id == ADMIN_USER_ID
+    lines = [
+        "🆘 Команды бота:",
+        "\n<b>Личные сообщения боту</b>",
+        "/new_deal \"описание\" — начать сделку, создать временный чат",
+        "\n<b>В группе сделки</b>",
+        "/start_deal \"описание\" — зарегистрировать сделку",
+        "/join_deal — присоединиться к сделке",
+        "/confirm — подтвердить получение",
+        "/check — проверить статус",
+    ]
+    if is_admin:
+        lines += [
+            "\n<b>Админ-команды</b>",
+            "/admin_list — список активных сделок",
+            "/admin_end — завершить сделку (в этом чате)",
+            "/admin_leave — покинуть чат",
+            "/admin_kick — исключить пользователя (ответом на его сообщение)",
+            "/admin_unban — снять бан у пользователя (по ID)",
+        ]
+    await update.effective_message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
+
+
+async def cmd_new_deal(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    chat = update.effective_chat
+    msg = update.effective_message
+    user = update.effective_user
+    if not chat or chat.type != ChatType.PRIVATE:
+        await msg.reply_text("Эта команда доступна только в личных сообщениях боту.")
+        return
+
+    description = _parse_description_from_message_text(msg.text or "")
+    if not description:
+        await msg.reply_text("Укажи описание: /new_deal \"обмен 500₽ на аккаунт Steam\"")
+        return
+
+    # Save pending
+    PENDING_DEALS[str(user.id)] = {
+        "initiatorId": user.id,
+        "description": description,
+        "createdAt": datetime.utcnow().isoformat(),
+    }
+
+    # Build startgroup deep link
+    me = await context.bot.get_me()
+    username = me.username
+    startgroup_link = f"https://t.me/{username}?startgroup=deal"
+
+    kb = InlineKeyboardMarkup([
+        [InlineKeyboardButton(text="Создать временный чат", url=startgroup_link)],
+    ])
+    await msg.reply_text(
+        (
+            "Сейчас я помогу создать временный чат для сделки.\n"
+            "Нажмите кнопку ниже, выберите 'Новая группа' и добавьте второго участника.\n"
+            "У вас будет 2 минуты, чтобы добавить собеседника."
+        ),
+        reply_markup=kb,
+    )
+
+
+async def deal_auto_leave_job(context: ContextTypes.DEFAULT_TYPE) -> None:
+    data = context.job.data or {}
+    chat_id = data.get("chat_id")
+    if not chat_id:
+        return
+    deal = get_deal(chat_id)
+    if deal:
+        deal["state"] = "cancelled"
+        deal["cancelReason"] = "no_second_participant"
+        deal_copy = dict(deal)
+        deal_copy["completedAt"] = datetime.utcnow().isoformat()
+        COMPLETED.append(deal_copy)
+        STATE["active"].pop(str(chat_id), None)
+        save_completed()
+        save_state()
+    try:
+        await context.bot.leave_chat(chat_id)
+    except Exception:
+        pass
 
 
 def _parse_description_from_message_text(text: str) -> Optional[str]:
@@ -404,6 +559,115 @@ async def cmd_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     await msg.reply_text("Сделка отменена модератором.")
 
 
+async def on_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    msg = update.effective_message
+    chat = update.effective_chat
+    if not chat:
+        return
+    deal = get_deal(chat.id)
+    if not deal or deal.get("state") != "active":
+        return
+    # Add first non-initiator human as counterparty
+    for u in (msg.new_chat_members or []):
+        if u.is_bot:
+            continue
+        if u.id not in deal["participants"]:
+            deal["participants"].append(u.id)
+            deal["confirmations"][str(u.id)] = False
+            add_event(deal, "counterparty_joined", u.id)
+            save_state()
+            # Cancel timeout job
+            job_name = f"deal-timeout-{chat.id}"
+            for j in context.job_queue.get_jobs_by_name(job_name):
+                j.schedule_removal()
+            try:
+                await msg.reply_text("Второй участник добавлен. Можно приступать к обмену. /confirm после получения.")
+            except Exception:
+                pass
+
+
+async def admin_list(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user = update.effective_user
+    if not user or user.id != ADMIN_USER_ID:
+        return
+    lines = ["Активные сделки:"]
+    for chat_id, d in STATE.get("active", {}).items():
+        lines.append(
+            f"• {d.get('dealId')} — {d.get('chatTitle') or chat_id} — участников: {len(d.get('participants', []))}"
+        )
+    if len(lines) == 1:
+        lines.append("(пусто)")
+    await update.effective_message.reply_text("\n".join(lines))
+
+
+async def admin_end(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user = update.effective_user
+    chat = update.effective_chat
+    if not user or user.id != ADMIN_USER_ID or not chat:
+        return
+    deal = get_deal(chat.id)
+    if not deal:
+        await update.effective_message.reply_text("Нет активной сделки в этом чате.")
+        return
+    await _finalize_deal(chat.id, deal, context)
+
+
+async def admin_leave(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user = update.effective_user
+    chat = update.effective_chat
+    if not user or user.id != ADMIN_USER_ID or not chat:
+        return
+    try:
+        await context.bot.leave_chat(chat.id)
+    except Exception:
+        pass
+
+
+async def admin_kick(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user = update.effective_user
+    chat = update.effective_chat
+    msg = update.effective_message
+    if not user or user.id != ADMIN_USER_ID or not chat:
+        return
+    target = None
+    if msg.reply_to_message and msg.reply_to_message.from_user:
+        target = msg.reply_to_message.from_user.id
+    elif context.args:
+        try:
+            target = int(context.args[0])
+        except Exception:
+            pass
+    if not target:
+        await msg.reply_text("Укажите пользователя ответом на сообщение или ID.")
+        return
+    try:
+        await context.bot.ban_chat_member(chat.id, target)
+        await msg.reply_text("Пользователь исключён.")
+    except Exception as e:
+        await msg.reply_text(f"Не удалось исключить: {e}")
+
+
+async def admin_unban(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user = update.effective_user
+    chat = update.effective_chat
+    msg = update.effective_message
+    if not user or user.id != ADMIN_USER_ID or not chat:
+        return
+    if not context.args:
+        await msg.reply_text("Укажите ID пользователя: /admin_unban <user_id>")
+        return
+    try:
+        target = int(context.args[0])
+    except Exception:
+        await msg.reply_text("Некорректный ID.")
+        return
+    try:
+        await context.bot.unban_chat_member(chat.id, target, only_if_banned=True)
+        await msg.reply_text("Пользователь разбанен (если был забанен).")
+    except Exception as e:
+        await msg.reply_text(f"Не удалось разбанить: {e}")
+
+
 async def handle_media(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     msg = update.effective_message
     chat = update.effective_chat
@@ -473,6 +737,8 @@ def main() -> None:
 
     # Commands
     app.add_handler(CommandHandler("start", cmd_start))
+    app.add_handler(CommandHandler("help", cmd_help))
+    app.add_handler(CommandHandler("new_deal", cmd_new_deal))
     app.add_handler(CommandHandler("start_deal", cmd_start_deal))
     app.add_handler(CommandHandler("join_deal", cmd_join_deal))
     app.add_handler(CommandHandler("confirm", cmd_confirm))
@@ -481,7 +747,15 @@ def main() -> None:
 
     # Media & text
     app.add_handler(MessageHandler(filters.PHOTO | filters.Document.ALL | filters.VIDEO, handle_media))
+    app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, on_new_members))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
+
+    # Admin commands
+    app.add_handler(CommandHandler("admin_list", admin_list))
+    app.add_handler(CommandHandler("admin_end", admin_end))
+    app.add_handler(CommandHandler("admin_leave", admin_leave))
+    app.add_handler(CommandHandler("admin_kick", admin_kick))
+    app.add_handler(CommandHandler("admin_unban", admin_unban))
 
     logger.info("Bot starting with admin %s", ADMIN_USER_ID)
     app.run_polling(allowed_updates=Update.ALL_TYPES, close_loop=False)

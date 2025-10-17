@@ -1,38 +1,3 @@
 {
-  "active": {
-    "-1002519811563": {
-      "dealId": "DEAL-0776",
-      "chatId": -1002519811563,
-      "chatTitle": "Чатик наш",
-      "name": "обмен на тачку",
-      "description": "обмен на тачку",
-      "initiatorId": 7694543415,
-      "participants": [
-        7694543415
-      ],
-      "confirmations": {
-        "7694543415": false
-      },
-      "evidence": [],
-      "createdAt": "2025-10-17T17:55:21.468944",
-      "state": "active",
-      "events": [
-        {
-          "at": "2025-10-17T17:55:21.469295",
-          "by": null,
-          "event": "bot_added"
-        },
-        {
-          "at": "2025-10-17T17:58:46.784402",
-          "by": 7694543415,
-          "event": "deal_started"
-        },
-        {
-          "at": "2025-10-17T17:58:46.784922",
-          "by": 7694543415,
-          "event": "counterparty_pending"
-        }
-      ]
-    }
-  }
+  "active": {}
 }
