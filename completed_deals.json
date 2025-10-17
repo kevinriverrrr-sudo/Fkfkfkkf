@@ -1,0 +1,99 @@
+[
+  {
+    "dealId": "DEAL-0776",
+    "chatId": -1002519811563,
+    "chatTitle": "Чатик наш",
+    "name": "обмен на тачку",
+    "description": "обмен на тачку",
+    "initiatorId": 7694543415,
+    "participants": [
+      7694543415,
+      7523873569
+    ],
+    "confirmations": {
+      "7694543415": true,
+      "7523873569": true
+    },
+    "evidence": [
+      {
+        "userId": 7694543415,
+        "type": "photo",
+        "fileId": "AgACAgIAAyEFAASWMUXrAAIFM2jyhUPI61PtePPHEQ5SrZKZ8LAUAAJW_jEbjOORSynPuWltu6eBAQADAgADeQADNgQ",
+        "caption": "",
+        "date": "2025-10-17T18:04:51.388406"
+      },
+      {
+        "userId": 7523873569,
+        "type": "photo",
+        "fileId": "AgACAgIAAyEFAASWMUXrAAIFNWjyhUzdDbZri0JvJgmoWKL7DNteAAJX_jEbjOORSznKPG1eBGv9AQADAgADeQADNgQ",
+        "caption": "",
+        "date": "2025-10-17T18:05:01.035948"
+      }
+    ],
+    "createdAt": "2025-10-17T17:55:21.468944",
+    "state": "cancelled",
+    "events": [
+      {
+        "at": "2025-10-17T17:55:21.469295",
+        "by": null,
+        "event": "bot_added"
+      },
+      {
+        "at": "2025-10-17T17:58:46.784402",
+        "by": 7694543415,
+        "event": "deal_started"
+      },
+      {
+        "at": "2025-10-17T17:58:46.784922",
+        "by": 7694543415,
+        "event": "counterparty_pending"
+      },
+      {
+        "at": "2025-10-17T18:02:27.344027",
+        "by": 7694543415,
+        "event": "confirm"
+      },
+      {
+        "at": "2025-10-17T18:04:19.087644",
+        "by": 7523873569,
+        "event": "participant_joined"
+      },
+      {
+        "at": "2025-10-17T18:04:23.276303",
+        "by": 7523873569,
+        "event": "confirm"
+      },
+      {
+        "at": "2025-10-17T18:04:36.020277",
+        "by": 7694543415,
+        "event": "confirm"
+      },
+      {
+        "at": "2025-10-17T18:04:51.388427",
+        "by": 7694543415,
+        "event": "evidence_photo"
+      },
+      {
+        "at": "2025-10-17T18:05:01.035965",
+        "by": 7523873569,
+        "event": "evidence_photo"
+      },
+      {
+        "at": "2025-10-17T18:05:05.824063",
+        "by": 7523873569,
+        "event": "confirm"
+      },
+      {
+        "at": "2025-10-17T18:05:11.877393",
+        "by": 7694543415,
+        "event": "confirm"
+      },
+      {
+        "at": "2025-10-17T18:08:00.056627",
+        "by": 7694543415,
+        "event": "cancelled"
+      }
+    ],
+    "completedAt": "2025-10-17T18:08:00.057194"
+  }
+]
