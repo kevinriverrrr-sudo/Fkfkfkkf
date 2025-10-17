@@ -1,3 +1,63 @@
 {
-  "active": {}
+  "active": {
+    "-1002519811563": {
+      "dealId": "DEAL-8134",
+      "chatId": -1002519811563,
+      "chatTitle": "Сделка №DEAL-0776 — обмен на тачку",
+      "name": "Обмен на брат",
+      "description": "Обмен на брат",
+      "initiatorId": 7694543415,
+      "participants": [
+        7694543415,
+        7523873569
+      ],
+      "confirmations": {
+        "7694543415": true,
+        "7523873569": true
+      },
+      "evidence": [
+        {
+          "userId": 7523873569,
+          "type": "photo",
+          "fileId": "AgACAgIAAyEFAASWMUXrAAIFNWjyhUzdDbZri0JvJgmoWKL7DNteAAJX_jEbjOORSznKPG1eBGv9AQADAgADeQADNgQ",
+          "caption": "",
+          "date": "2025-10-17T18:09:17.289979"
+        }
+      ],
+      "createdAt": "2025-10-17T18:08:41.785354",
+      "state": "active",
+      "events": [
+        {
+          "at": "2025-10-17T18:08:41.786135",
+          "by": 7694543415,
+          "event": "deal_started"
+        },
+        {
+          "at": "2025-10-17T18:08:41.786408",
+          "by": 7694543415,
+          "event": "counterparty_pending"
+        },
+        {
+          "at": "2025-10-17T18:08:50.939612",
+          "by": 7694543415,
+          "event": "confirm"
+        },
+        {
+          "at": "2025-10-17T18:08:57.936434",
+          "by": 7523873569,
+          "event": "participant_joined"
+        },
+        {
+          "at": "2025-10-17T18:09:01.549840",
+          "by": 7523873569,
+          "event": "confirm"
+        },
+        {
+          "at": "2025-10-17T18:09:17.290001",
+          "by": 7523873569,
+          "event": "evidence_photo"
+        }
+      ]
+    }
+  }
 }
