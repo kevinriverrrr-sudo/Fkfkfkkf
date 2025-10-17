@@ -1,0 +1,5 @@
+2025-10-17 17:54:04,018 [INFO] escrow-bot: Bot starting with admin 7694543415
+2025-10-17 17:54:07,607 [INFO] httpx: HTTP Request: POST https://api.telegram.org/bot8144446584:AAFmxbIOQd4O7Xwkv_IlLZsefjO5P4dVOYM/getMe "HTTP/1.1 200 OK"
+2025-10-17 17:54:07,705 [INFO] httpx: HTTP Request: POST https://api.telegram.org/bot8144446584:AAFmxbIOQd4O7Xwkv_IlLZsefjO5P4dVOYM/deleteWebhook "HTTP/1.1 200 OK"
+2025-10-17 17:54:07,707 [INFO] telegram.ext.Application: Application started
+2025-10-17 17:54:18,005 [INFO] httpx: HTTP Request: POST https://api.telegram.org/bot8144446584:AAFmxbIOQd4O7Xwkv_IlLZsefjO5P4dVOYM/getUpdates "HTTP/1.1 200 OK"
