@@ -141,3 +141,23 @@ AttributeError: Attribute `data` of class `CallbackQuery` can't be set!
 2025-11-04 12:19:34,479 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7560458678:AAHbtiK7z0QiII5Iz3fzo17cReOaDS-2tBU/getUpdates "HTTP/1.1 200 OK"
 2025-11-04 12:19:44,581 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7560458678:AAHbtiK7z0QiII5Iz3fzo17cReOaDS-2tBU/getUpdates "HTTP/1.1 200 OK"
 2025-11-04 12:19:54,683 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7560458678:AAHbtiK7z0QiII5Iz3fzo17cReOaDS-2tBU/getUpdates "HTTP/1.1 200 OK"
+2025-11-04 12:20:04,786 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7560458678:AAHbtiK7z0QiII5Iz3fzo17cReOaDS-2tBU/getUpdates "HTTP/1.1 200 OK"
+2025-11-04 12:20:08,859 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7560458678:AAHbtiK7z0QiII5Iz3fzo17cReOaDS-2tBU/getUpdates "HTTP/1.1 200 OK"
+2025-11-04 12:20:08,860 - telegram.ext.Application - INFO - Application is stopping. This might take a moment.
+2025-11-04 12:20:08,860 - telegram.ext.Application - INFO - Application.stop() complete
+============================================================
+🎨 ПРОФЕССИОНАЛЬНЫЙ БОТ ДЛЯ УДАЛЕНИЯ ФОНОВ v2.0
+============================================================
+✨ Все функции активированы:
+   🤖 4 AI-модели
+   🎨 Замена фона
+   ✨ Эффекты и фильтры
+   📦 Пакетная обработка
+   📜 История и избранное
+   🏆 Лидерборд
+   🎁 Реферальная система
+   💎 Premium функции
+============================================================
+📱 Готов к работе!
+⏹  Для остановки: Ctrl+C
+============================================================
