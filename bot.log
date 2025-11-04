@@ -1,0 +1,15 @@
+2025-11-04 11:59:34,864 - __main__ - INFO - 🚀 Бот запущен и готов к работе!
+2025-11-04 11:59:35,174 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7560458678:AAHbtiK7z0QiII5Iz3fzo17cReOaDS-2tBU/getMe "HTTP/1.1 200 OK"
+2025-11-04 11:59:35,273 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7560458678:AAHbtiK7z0QiII5Iz3fzo17cReOaDS-2tBU/deleteWebhook "HTTP/1.1 200 OK"
+2025-11-04 11:59:35,274 - telegram.ext.Application - INFO - Application started
+2025-11-04 11:59:35,560 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7560458678:AAHbtiK7z0QiII5Iz3fzo17cReOaDS-2tBU/getUpdates "HTTP/1.1 200 OK"
+2025-11-04 11:59:35,690 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7560458678:AAHbtiK7z0QiII5Iz3fzo17cReOaDS-2tBU/sendMessage "HTTP/1.1 200 OK"
+2025-11-04 11:59:35,811 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7560458678:AAHbtiK7z0QiII5Iz3fzo17cReOaDS-2tBU/sendMessage "HTTP/1.1 200 OK"
+2025-11-04 11:59:35,935 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7560458678:AAHbtiK7z0QiII5Iz3fzo17cReOaDS-2tBU/sendMessage "HTTP/1.1 200 OK"
+2025-11-04 11:59:36,072 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7560458678:AAHbtiK7z0QiII5Iz3fzo17cReOaDS-2tBU/sendMessage "HTTP/1.1 200 OK"
+2025-11-04 11:59:36,204 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7560458678:AAHbtiK7z0QiII5Iz3fzo17cReOaDS-2tBU/sendMessage "HTTP/1.1 200 OK"
+2025-11-04 11:59:36,360 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7560458678:AAHbtiK7z0QiII5Iz3fzo17cReOaDS-2tBU/sendMessage "HTTP/1.1 200 OK"
+2025-11-04 11:59:36,555 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7560458678:AAHbtiK7z0QiII5Iz3fzo17cReOaDS-2tBU/sendMessage "HTTP/1.1 200 OK"
+2025-11-04 11:59:36,754 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7560458678:AAHbtiK7z0QiII5Iz3fzo17cReOaDS-2tBU/sendMessage "HTTP/1.1 200 OK"
+2025-11-04 11:59:45,658 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7560458678:AAHbtiK7z0QiII5Iz3fzo17cReOaDS-2tBU/getUpdates "HTTP/1.1 200 OK"
+2025-11-04 11:59:55,754 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7560458678:AAHbtiK7z0QiII5Iz3fzo17cReOaDS-2tBU/getUpdates "HTTP/1.1 200 OK"
